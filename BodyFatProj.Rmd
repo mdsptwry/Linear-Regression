@@ -1,0 +1,164 @@
+---
+title: "Predicting Body Fat Percentage Using Linear Regression"
+author: "Md Patwary"
+date: "2024-07-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Abstract
+
+This report presents a statistical analysis aimed at predicting body weight using various body measurements. The dataset includes variables such as triceps skinfold thickness, thigh circumference, and midarm circumference. Our primary objective is to develop a linear regression model to identify significant predictors of body fat percentage. We began by conducting a thorough exploratory data analysis of the dataset to understand the distribution and relationships between variables. Following this we built a linear regression model to predict body fat percentage based on the three body measurements. The model demonstrated that among the three predictors, the first two were more significant than the third, with high $R^2$ and adjusted $R^2$ values, indicating a strong fit. Although including the third predictor does increase the $R^2$ values slightly, it had a very high p-value indicating that its not quite significant in our model. Therefore, we excluded it. The findings suggest that triceps skinfold thickness, and thigh circumference are reliable indicators of body fat percentage. This model can be used for health assessments and personalized fitness planning, providing an efficient method for estimating body fat percentage without the need for complex or invasive procedures.
+
+## Introduction
+
+Studying body fat percentage is crucial for understanding and managing overall health. Excess body fat is linked to numerous health risks, including cardiovascular diseases, diabetes, and various obesity-related conditions. Accurate measurement of body fat percentage allows individuals in their fitness planning, and medical diagnostics. Traditional methods of measuring body fat percentage that involves going to your physician or doctor can be expensive and time consuming. Developing a reliable, efficient, and cost-effective methods to Estimate body fat percentage using simple body measures can be of great value, and widely accessible.
+
+## Interesting Questions
+
+This study aims to explore the following questions using the dataset of body measurements:\
+1. How accurately can we predict body fat percentage using measurements like tricpes skinfold thickesss, thigh circumference, and midarm circumference?\
+2. Among these variables which measurement(s) are the most significant predictors of body fat percentage?\
+3. Can we identify the predictive variables and develop a reliable predictive model that determines bodyfat percentage accurately to aid individuals in their health and fitness assessments
+
+## Description of Data
+
+This data consists of 20 females between the ages of 25 and 30 years old. There are four different variables in the dataset:\
+- y = amount of body\
+- x1 = triceps skinfold thickness\
+- x2 = thigh circumference\
+- x3 = midarm circumference
+
+The data does not have any missing variables, so this is a clean dataset.
+
+```{r}
+dataurl <- "http://calcnet.mth.cmich.edu/org/spss/v16_materials/datasets_v16/bodyfat-txtformat.txt"
+bfdata <- read.table(dataurl, header = FALSE)
+
+colnames(bfdata) <- c("y", "x1", "x2", "x3")
+
+print(bfdata)
+
+```
+
+## Summary Statistics of Each variable
+
+```{r}
+summary(bfdata$y)
+summary(bfdata$x1)
+summary(bfdata$x2)
+summary(bfdata$x3)
+
+```
+
+**Note:** From the summary of statistics of each variable it seems the the average bodyfat percentage between the 20 observed women is 25.30. According to the NCAA the the healthy body percentage for adult females is between 20-32%, and other sources say its between 25-31%. So its nice to know that the observation in our dataset falls within these ranges.
+
+## Visual Statistics
+
+```{r}
+par(mfrow = c(2,2))
+
+hist(bfdata$y, main = "Distribution of Body Fat percentage", xlab="Body Fat Percentage")
+
+hist(bfdata$x1, main = "Distribution of Tricep Skinford Thickness", xlab="Triceps Skinfold Thickness")
+
+hist(bfdata$x2, main = "Distribution of Thigh Circumference", xlab="Thigh Circumference")
+
+ hist(bfdata$x3, main = "Distribution of Midarm Circumference", xlab="Midarm Circumference")
+
+par(mfrow=c(1,1))
+
+```
+
+## Additional Visual Statistics
+
+```{r}
+
+# the pairs command allows us to see the relationship between the different scatterplots and determine which ones have a correlation
+pairs(bfdata)
+
+```
+
+**Note:** Using the pairs() command we are able to visualize the relationship between each of the variables through several different scatterplots plotted together. Here are some key takeways:\
+- From this plot, we can notice that there seems to be a positive correlation between body fat percentage and triceps skinfold thickess.\
+- There seems to be somehwat of positive correlation between body fat percentage and thigh circuference, but visibly less stronger than the previous correlation.\
+- And there is also a positive correlation between body fat percentage and midarm circumference, which is slightly more visible and apparent than the previous correlation.
+
+Additionally there seems to be a correlation between the triceps skinfold thickness and midarm circumference, but I think thats expected. Plus, that's not what we are here to discuss, rather we are looking for correlation to body fat percentage, so we will ignore that correlation for now.
+
+Lets verify these using the cor() command
+
+```{r}
+cor(bfdata$y, bfdata$x1)
+cor(bfdata$y, bfdata$x2)
+cor(bfdata$y, bfdata$x3)
+
+```
+
+**Note:** Okay so this verifies our assumptions from the scatterplots. The correlation coefficient between y and x1, and y and x3 is very close to one, indicating a strong positive correlation. While the correlation between y and x2 is rather weak. But since on the scatterplots we see a positive upward trend, we will still count it in our model.
+
+## Methods and Results
+
+Now that we have found that there is positive correlation between bodyfat percentage and the three variables, its safe to say we will be using all three of the variables in our linear regression model.
+
+```{r}
+linreg <- lm(y ~ x1+x2+x3, data = bfdata)
+summary(linreg)
+
+```
+
+**Notes:** The intercept of our model is negative, so that doesn't really tell us much since its not really possible to have negative body fat percentage.
+
+Now, as you can notice the predictive variable x3 has a coefficient of 0.02638 meaning it has a very little influence in increasing the body fat percentage. Additionally it has a p-value of 0.17, which is very high compared to 0.05, suggesting that this variable might not be significant. Which is odd, because the correlation coefficient between y and x3 was faily high. So because it not having significant contributions we are going to remove it and remake our model.
+
+```{r}
+linreg <- lm(y ~ x1+x2, data = bfdata)
+summary(linreg)
+
+```
+
+**Interpretations:**
+
+For our slopes, the coefficient of x1 is 0.855480, which suggests that for every one-unit increase in triceps skinfold thickness, the estimated body fat percentage increase by approximately 0.855480 units. The same can be said for variable x2 whose coefficient is 0.526544, meaning one unit increase in thigh circumference is resposible for approximately 0.526544 units increase in body fat percentage.
+
+The multiple R-squared aka the coefficient of determination is 0.9986 suggesting that approximately 99.86% of the variance in the data is explained by the predictors in the model. The adjusted R-sqaured is 0.9984, which indicates the predictors that we have added contribute meaningfully in our model.
+
+Now if you notice you'll see that our new model has a slightly reduced multiple R-sqaure and adjusted R-square value. But since this difference is extremely marginal, that means both models are likely to provide similar results. Our new model perform slightly better in terms of F-statistic and has stronger coefficients for x1 and x2 compared to the previous one. Additionally all the p-values for the predictor variables are highly significant.
+
+Since the new model has fewer predictor variables, with all variables being significant, and has almost the same multiple R-squared and adjusted R-squared value, we can conclude that our new model appears to be better than the previous one.
+
+## Assessing Performance of Model
+
+```{r}
+prediction <- predict(linreg, bfdata)
+
+bfdata$predicted_y <- prediction
+
+plot(bfdata$y, bfdata$predicted_y, xlab = "Actual Y", ylab = "Predicted Y")
+abline(0, 1, col="red")
+
+```
+
+**Note:** From this plot of the prediced y and the actual y vlaues we can see that most of the data points are within the diagonal line, which suggests that the model's predictions are generally in line with the actual body fat amounts. And of course, there are some scatter of points around the line, which is expected, as the models predictions are not going to be perfect. But overall, the model seems to be adequate in its predictions.
+
+## Normality Check for residuals
+
+```{r}
+qqnorm(residuals(linreg))
+qqline(residuals(linreg),  col="red")
+```
+
+**Notes:** In an idea scenario the residual would fall exactly along the diagonal red line, indicating that they are perfectly normally distributed. In my plot, most the residuals fall in the diagonal line, with a couple residuals slightly deviated from the line. However, overall they follow a reasonably straight pattern suggesting that they are approximately normally distributed. Therefore, we can once again say that our model's performance is adequate.
+
+## Conclusion
+
+In this study, we investigaed the relationship between body fat percentage(y) and three physical measurements: triceps skinfold thickness(x1), thigh circumference(x2), and midarm circumference(x3). The dataset consisted of 20 female subjects aged between 25 and 30 years old. From our analysis, it is evident that both triceps skinfold thickess and thigh circumference are strong predictors of body fat percentage among the subjects. The linear regression models consistenly showed significant positive associations between these variables and body fat percentage, as indicaed by their high coefficient estimates and low p-values.
+
+Despite including midarm circumference initally, its contribution to predicting body fat percentage was not statistically significant in our models. Therefore, we opted to refine our model, leading to a simplified and more interpretable regression model that includes only triceps skinfold thickness and thigh circumference.
+
+The models acheived exceptional goodness-of-fit statistics with adjusted R-sqaured values exceeding 0.998, indicating over 99.8% of the variability in body fat percentage was explained by the predictors included.
+
+However, there are some limitations on this mode, as it was based on a specific dataset with a small amount of observations. So the generalzability of the model and findings may not be fit for larger datasets, and needs to be adjusted. Future studies could involve collecting larger data from more diverse population to the strengthen the generalizability of the model.
